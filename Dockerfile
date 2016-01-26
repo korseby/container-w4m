@@ -21,12 +21,29 @@ RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
 RUN update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-4.9 50
 
-# install GALAXY
-RUN cd /usr/src; git clone https://github.com/galaxyproject/galaxy; cd galaxy; git checkout -b release_15.10 origin/release_15.10
-
 # clean up
 RUN apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
 
+# install GALAXY
+RUN cd /usr/src; git clone https://github.com/galaxyproject/galaxy; cd galaxy; git checkout -b release_15.10 origin/release_15.10
+
+# generate GALAXY config
+RUN echo '[server:main]' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'use = egg:Paste#http' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'port = 8889' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'host = 0.0.0.0' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'use_threadpool = True' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo '[filter:gzip]' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'use = egg:Paste#gzip' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo '[filter:proxy-prefix]' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'use = egg:PasteDeploy#prefix' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'prefix = /galaxy' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo '[app:main]' >> /usr/src/galaxy/config/galaxy.ini
+RUN echo 'paste.app_factory = galaxy.web.buildapp:app_factory' >> /usr/src/galaxy/config/galaxy.ini
+
+# Expose port to outside
+EXPOSE 8889
+
 # Define Entry point script
-ENTRYPOINT ["/usr/src/galaxy/run.sh --daemon"]
+ENTRYPOINT ["/bin/sh","/usr/src/galaxy/run.sh"]
 

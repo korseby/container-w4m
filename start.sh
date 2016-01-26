@@ -9,7 +9,7 @@ docker pull debian
 
 # building:
 docker build --cpu-shares=1 --cpuset-cpus="0-7" --cpuset-mems="0" --memory=8192g -t docker-w4m .
-docker run --cpuset-cpus="0-7" --cpuset-mems="0" --memory=8192g --name docker-w4m-run -i -t docker-w4m
+docker run --publish=8889:8889 --volume=/vol:/vol:rw --cpuset-cpus="0-7" --cpuset-mems="0" --memory=8192g --name docker-w4m-run -i -t docker-w4m
 
 # manually:
 #docker run -P -i -t --name=docker-w4m debian /bin/bash
